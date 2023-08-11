@@ -9,18 +9,18 @@ export default async (req, res) => {
   }
 
   try {
-    const { fileName, format } = req.body;
+    const { file, format } = req.body;
 
     // 檢查輸入
-    if (!fileName || !format) {
+    if (!file || !format) {
       throw new Error('Missing required fields: fileName and format.');
     }
 
-    const inputPath = path.join(process.cwd(), 'uploads', fileName);
-    const parsedPath = path.parse(fileName);
+    const inputPath = path.join(process.cwd(), 'uploads', file);
+    const parsedPath = path.parse(file);
     const outputFileName = parsedPath.name;
 
-    const outputPath = path.join(process.cwd(), 'converted', `${outputFileName}.${format}`);
+    const outputPath = path.join(process.cwd(), 'results', `${outputFileName}.${format}`);
 
     // 轉檔
     await new Promise((resolve, reject) => {

@@ -1,18 +1,30 @@
 import { useState, useEffect } from 'react';
+import { MdRefresh } from 'react-icons/md';
 
 export default function Home() {
   const [files, setFiles] = useState([]);
   const [convertedFiles, setConvertedFiles] = useState([]);
-  const [format, setFormat] = useState('mp4');
-  const [loading, setLoading] = useState(false);
+
+  const [formats, setFormats] = useState({});
+  const [processing, setProcessing] = useState(false);
+  const [waiting, setWaiting] = useState([]);
 
   useEffect(() => {
     fetchFiles('uploads');
-  }, [files]);
+    fetchFiles('results');
+  }, []);
 
   useEffect(() => {
-    fetchFiles('results');
-  }, [convertedFiles]);
+    if (waiting.length === 0 || processing) return;
+    handleTask();
+  }, [waiting, processing]);
+
+  const handleTask = async () => {
+    const item = waiting[0];
+    if (item) {
+      handleVideoTransform();
+    }
+  };
 
   const fetchFiles = async (folder) => {
     try {
@@ -23,45 +35,69 @@ export default function Home() {
         },
         body: JSON.stringify({ folder: folder }),
       });
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch files in ' + folder);
+      }
+
       const data = await response.json();
+      // console.log('data:', data);
 
       if (folder === 'uploads') {
         setFiles(data);
-      } else if (folder === 'converted') {
+      } else if (folder === 'results') {
         setConvertedFiles(data);
       }
     } catch (error) {
-      console.log('Failed to fetch files:', error);
+      console.log(error.message);
     }
   };
 
-  const handleVideoTransform = async (fileName) => {
-    setLoading(true);
-    console.log('fileName:', fileName);
+  const handleVideoTransform = async () => {
+    setProcessing(true);
+    const file = waiting[0].file;
+    const format = waiting[0].format;
     try {
       const response = await fetch('/api/convert', {
         method: 'POST',
-        body: JSON.stringify({ fileName: fileName, format: format }),
+        body: JSON.stringify({ file: file, format: format }),
         headers: {
           'Content-Type': 'application/json',
         },
       });
+      if (!response.ok) {
+        throw new Error(`Failed to transform ${file} to ${format}`);
+      }
       const data = await response.json();
-      console.log('data:', data);
+      // console.log('data:', data);
+
+      setWaiting((prev) => prev.slice(1));
+      fetchFiles('results');
     } catch (error) {
-      console.error('Failed to transform video:', error);
+      console.log(error.message);
+      window.alert(error.message);
     } finally {
-      setLoading(false);
+      setProcessing(false);
     }
   };
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-between p-10">
-      <div className="w-96">
-        <section>
-          <ul className="h-52 overflow-y-auto bg-white p-1 rounded-md">
+    <main className="flex min-h-screen flex-col items-center justify-between ">
+      <div className="flex flex-wrap min-h-screen w-full justify-around px-8 py-12">
+        <section className="min-h-full w-full max-w-xl bg-white p-2 rounded-md">
+          <div className="flex justify-between items-center">
             {files.length === 0 && <h1>No video to convert</h1>}
-            {files.length !== 0 && <h1>Select a file to convert</h1>}
+            {files.length !== 0 && <h1>Select file to convert</h1>}
+            <button
+              className="mr-2 h-8 w-8 flex justify-center items-center border-slate-400 border-2 rounded-sm"
+              onClick={() => {
+                fetchFiles('uploads');
+              }}
+            >
+              <MdRefresh className="text-slate-500" />
+            </button>
+          </div>
+          <ul className="overflow-y-auto mt-2 h-3/4">
             {files.map((file) => (
               <div
                 key={file}
@@ -74,7 +110,10 @@ export default function Home() {
                   <select
                     className="ml-1"
                     onChange={(e) => {
-                      setFormat(e.target.value);
+                      setFormats((prev) => ({
+                        ...prev,
+                        [file]: e.target.value,
+                      }));
                     }}
                   >
                     <option value="mp4">MP4</option>
@@ -86,8 +125,14 @@ export default function Home() {
                     <option value="mpeg">MPEG</option>
                   </select>
                   <button
-                    className="ml-2 bg-black text-white p-2 rounded-md"
-                    onClick={() => handleVideoTransform(file)}
+                    className="ml-2 bg-black text-white p-2 rounded-md disabled:bg-slate-300"
+                    onClick={() => {
+                      setWaiting((prev) => [
+                        ...prev,
+                        { file: file, format: formats[file] || 'mp4' },
+                      ]);
+                    }}
+                    // disabled={loading}
                   >
                     轉檔
                   </button>
@@ -95,18 +140,44 @@ export default function Home() {
               </div>
             ))}
           </ul>
-          {loading && <p>轉檔中...</p>}
+
+          <div className="mt-2 border-t-2 h-1/6 overflow-y-scroll ">
+            {waiting.length === 0 ? (
+              <p>沒有影片等待轉檔</p>
+            ) : (
+              <>
+                <p>
+                  {waiting[0].file} 轉檔中, {waiting.length - 1} 個影片等待中...
+                </p>
+                {waiting.map((item, index) => (
+                  <p key={index}>
+                    {item.file} 轉檔 {item.format.toUpperCase()} ...
+                  </p>
+                ))}
+              </>
+            )}
+          </div>
         </section>
-        <section className="mt-4">
-          <ul className="h-52 overflow-y-auto bg-white rounded-md p-1">
+        <section className="min-h-full w-full max-w-xl bg-white p-2 rounded-md max-xl:mt-4">
+          <div className="flex justify-between items-center">
             <h1>Converted files</h1>
+            <button
+              className="mr-2 h-8 w-8 flex justify-center items-center border-slate-400 border-2 rounded-sm"
+              onClick={() => {
+                fetchFiles('results');
+              }}
+            >
+              <MdRefresh className="text-slate-500" />
+            </button>
+          </div>
+          <ul className=" overflow-y-auto bg-white rounded-md p-1 mt-2">
             {convertedFiles.length === 0 && (
               <p className="text-center mt-12">No converted files yet.</p>
             )}
             {convertedFiles.map((file) => (
               <div
                 key={file}
-                className="flex items-center justify-between bg-slate-100 pl-1 rounded-md mt-1"
+                className="flex items-center justify-between bg-slate-100 pl-1 rounded-md mt-1 h-10"
               >
                 <li>{file}</li>
               </div>
