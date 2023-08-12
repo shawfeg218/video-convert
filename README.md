@@ -12,7 +12,7 @@ yarn dev
 pnpm dev
 ```
 
-For Windows user, you can paste the `video transform.txt` to everywhere you want and change the extension to `.bat`, then you can run easily run the script.
+For Windows user, you can paste the `video transform.txt` to everywhere you want and change the extension to `.bat`, then you can easily run the script.
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
