@@ -4,11 +4,11 @@ const ffmpegPath = require('ffmpeg-static');
 ffmpeg.setFfmpegPath(ffmpegPath);
 
 export default async (req, res) => {
-  if (req.method !== 'POST') {
-    throw new Error('Only POST requests allowed.');
-  }
-
   try {
+    if (req.method !== 'POST') {
+      throw new Error('Only POST requests allowed.');
+    }
+
     const { file, format } = req.body;
 
     // 檢查輸入
@@ -26,7 +26,7 @@ export default async (req, res) => {
     await new Promise((resolve, reject) => {
       ffmpeg()
         .input(inputPath)
-        .toFormat(format)
+        .outputFormat(format)
         .on('end', () => {
           res
             .status(200)
@@ -34,7 +34,9 @@ export default async (req, res) => {
           resolve();
         })
         .on('error', (error) => {
-          reject(new Error(`Failed to convert ${file}: ${error.message}!`));
+          reject(
+            new Error(`Failed to convert ${file} to ${format.toUpperCase()}: ${error.message}`)
+          );
         })
         .save(outputPath);
     });
