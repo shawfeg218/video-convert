@@ -1,0 +1,4 @@
+cd C:\Users\shawn\video-transform
+start .
+start http://localhost:3000
+npm run dev
