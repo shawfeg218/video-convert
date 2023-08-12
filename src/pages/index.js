@@ -9,6 +9,16 @@ export default function Home() {
   const [processing, setProcessing] = useState(false);
   const [waiting, setWaiting] = useState([]);
 
+  const [message, setMessage] = useState('');
+
+  useEffect(() => {
+    if (message) {
+      setTimeout(() => {
+        setMessage('');
+      }, 5000);
+    }
+  }, [message]);
+
   useEffect(() => {
     fetchFiles('uploads');
     fetchFiles('results');
@@ -69,21 +79,22 @@ export default function Home() {
         throw new Error(`Failed to transform ${file} to ${format}`);
       }
       const data = await response.json();
-      // console.log('data:', data);
+      console.log('data:', data.message);
+      setMessage(data.message);
 
-      setWaiting((prev) => prev.slice(1));
       fetchFiles('results');
     } catch (error) {
       console.log(error.message);
       window.alert(error.message);
     } finally {
+      setWaiting((prev) => prev.slice(1));
       setProcessing(false);
     }
   };
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-between ">
-      <div className="flex flex-wrap min-h-screen w-full justify-around px-8 py-12">
+      <div className="flex flex-wrap min-h-screen w-full justify-around px-8 py-10 ">
         <section className="min-h-full w-full max-w-xl bg-white p-2 rounded-md">
           <div className="flex justify-between items-center">
             {files.length === 0 && <h1>No video to convert</h1>}
@@ -97,7 +108,7 @@ export default function Home() {
               <MdRefresh className="text-slate-500" />
             </button>
           </div>
-          <ul className="overflow-y-auto mt-2 h-3/4">
+          <ul className="max-h-96 overflow-y-auto mt-2 h-3/4">
             {files.map((file) => (
               <div
                 key={file}
@@ -158,7 +169,14 @@ export default function Home() {
             )}
           </div>
         </section>
-        <section className="min-h-full w-full max-w-xl bg-white p-2 rounded-md max-xl:mt-4">
+        <section className="min-h-full w-full max-w-xl bg-white p-2 rounded-md max-xl:mt-4 relative">
+          {message && (
+            <div className="flex justify-center absolute top-1/2 left-0 w-full">
+              <div className="border-2 border-slate-300 p-2 rounded-md bg-white">
+                <p className="font-bold text-xl">{message}</p>
+              </div>
+            </div>
+          )}
           <div className="flex justify-between items-center">
             <h1>Converted files</h1>
             <button
@@ -170,7 +188,10 @@ export default function Home() {
               <MdRefresh className="text-slate-500" />
             </button>
           </div>
-          <ul className=" overflow-y-auto bg-white rounded-md p-1 mt-2">
+          <ul
+            className="overflow-y-auto bg-white rounded-md p-1 mt-2"
+            style={{ maxHeight: '500px' }}
+          >
             {convertedFiles.length === 0 && (
               <p className="text-center mt-12">No converted files yet.</p>
             )}

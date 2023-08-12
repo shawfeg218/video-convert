@@ -28,11 +28,13 @@ export default async (req, res) => {
         .input(inputPath)
         .toFormat(format)
         .on('end', () => {
-          res.status(200).json({ message: 'Video converted successfully.' });
+          res
+            .status(200)
+            .json({ message: `${file} convert to ${format.toUpperCase()} successfully!` });
           resolve();
         })
         .on('error', (error) => {
-          reject(new Error(`Failed to convert video: ${error.message}`));
+          reject(new Error(`Failed to convert ${file}: ${error.message}!`));
         })
         .save(outputPath);
     });
