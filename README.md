@@ -2,7 +2,19 @@ This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next
 
 ## Getting Started
 
-First, run the development server:
+First, install [ffmpeg](https://ffmpeg.org/) on your computer.
+
+Second, install the dependencies:
+
+```bash
+npm install
+# or
+yarn
+# or
+pnpm install
+```
+
+Then, run the development server:
 
 ```bash
 npm run dev
@@ -12,9 +24,11 @@ yarn dev
 pnpm dev
 ```
 
-For Windows user, you can paste the `video transform.txt` to everywhere you want and change the extension to `.bat`, then you can easily run the script.
+For Windows user, you can paste the `video transform.txt` to everywhere you want and change the file extension to `.bat`, then you can easily run the script.
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+
+Put your video files into the `uploads` directory, you will see the results in the `results` directory.
 
 ## Learn More
 

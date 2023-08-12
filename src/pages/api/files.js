@@ -10,10 +10,9 @@ export default async (req, res) => {
 
     const directoryPath = path.join(process.cwd(), folder);
 
-    // 檢查文件夾是否存在
+    // check if directory exists
     if (!existsSync(directoryPath)) {
-      // 如果文件夾不存在，創建它
-      throw new Error(`The ${folder} folder does not exist.`);
+      await fs.mkdir(directoryPath, { recursive: true });
     }
 
     const files = await fs.readdir(directoryPath);
