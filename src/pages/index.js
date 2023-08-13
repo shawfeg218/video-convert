@@ -176,8 +176,7 @@ export default function Home() {
         <section className="min-h-full w-full max-w-xl bg-white px-2 py-3 rounded-md">
           <div className="flex justify-between items-center">
             <div className="flex items-center">
-              {files.length === 0 && <h1>No video to convert</h1>}
-              {files.length !== 0 && <h1>Uploads from</h1>}
+              <h>Uploads from</h>
               <input
                 type="text"
                 placeholder={`Default:  Path/to/video-convert/${inputDir.path}`}
@@ -195,6 +194,7 @@ export default function Home() {
             </button>
           </div>
           <ul className="max-h-96 overflow-y-auto mt-2 h-3/4">
+            {files.length === 0 && <p className="text-center mt-12">No files in this folder.</p>}
             {files.map((file) => (
               <div
                 key={file}
