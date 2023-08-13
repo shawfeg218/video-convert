@@ -173,7 +173,7 @@ export default function Home() {
   return (
     <main className="flex min-h-screen flex-col items-center justify-between ">
       <div className="flex flex-wrap min-h-screen w-full justify-around px-8 py-10 ">
-        <section className="min-h-full w-full max-w-xl bg-white px-2 py-3 rounded-md">
+        <section className="min-h-full w-full max-w-xl bg-white px-2 pt-3 pb-1 rounded-md">
           <div className="flex justify-between items-center">
             <div className="flex items-center">
               <h>Uploads from</h>
@@ -200,7 +200,9 @@ export default function Home() {
                 key={file}
                 className="flex items-center justify-between bg-slate-100 pl-1 rounded-md mt-1"
               >
-                <li>{file}</li>
+                <li className="w-56 truncate overflow-hidden" title={file}>
+                  {file}
+                </li>
 
                 <div className="flex justify-between items-center">
                   <p>轉換成</p>
@@ -271,7 +273,7 @@ export default function Home() {
             ))}
           </ul>
 
-          <div className="mt-2 border-t-2 h-1/6 overflow-y-scroll ">
+          <div className="mt-2 border-t-2 max-h-28 overflow-y-scroll ">
             {waiting.length === 0 ? (
               <p>沒有影片等待轉檔</p>
             ) : (
@@ -287,7 +289,7 @@ export default function Home() {
                 <p>{waiting.length - 1} 個影片等待中...</p>
                 {waiting.slice(1).map((item, index) => (
                   <div key={index + 1} className="flex">
-                    <p>
+                    <p className="w-3/4 overflow-hidden truncate" title={item.file}>
                       {item.file} 轉檔 {item.format.toUpperCase()} 等待中...
                     </p>
                     <button
@@ -305,8 +307,8 @@ export default function Home() {
         <section className="min-h-full w-full max-w-xl bg-white px-2 py-3 rounded-md max-xl:mt-4 relative">
           {message && (
             <div className="flex justify-center absolute top-1/2 left-0 w-full">
-              <div className="border-2 border-slate-300 p-2 rounded-md bg-white">
-                <p className="font-bold text-xl">{message}</p>
+              <div className="border-2 border-slate-300 p-2 rounded-md bg-white max-w-md">
+                <p className="font-bold text-xl text-center overflow-hidden">{message}</p>
               </div>
             </div>
           )}
@@ -339,7 +341,9 @@ export default function Home() {
                 key={file}
                 className="flex items-center justify-between bg-slate-100 pl-1 rounded-md mt-1 h-10"
               >
-                <li>{file}</li>
+                <li className="truncate overflow-hidden" title={file}>
+                  {file}
+                </li>
               </div>
             ))}
           </ul>
