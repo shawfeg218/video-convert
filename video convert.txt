@@ -1,5 +1,5 @@
 REM Modified the path to where you download or git clone this webapp
-cd C:\Users\shawn\video-transform
+cd C:\Users\shawn\video-convert
 
 start .
 

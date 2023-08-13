@@ -1,7 +1,5 @@
-import path from 'path';
-import ffmpeg from 'fluent-ffmpeg';
-const ffmpegPath = require('ffmpeg-static');
-ffmpeg.setFfmpegPath(ffmpegPath);
+// api/convert.js
+import { convertVideo } from '@/utils/ffmpeg';
 
 export default async (req, res) => {
   try {
@@ -16,30 +14,13 @@ export default async (req, res) => {
       throw new Error('Missing required fields: fileName and format.');
     }
 
-    const inputPath = path.join(process.cwd(), 'uploads', file);
-    const parsedPath = path.parse(file);
-    const outputFileName = parsedPath.name;
-
-    const outputPath = path.join(process.cwd(), 'results', `${outputFileName}.${format}`);
-
-    // 轉檔
-    await new Promise((resolve, reject) => {
-      ffmpeg()
-        .input(inputPath)
-        .outputFormat(format)
-        .on('end', () => {
-          res
-            .status(200)
-            .json({ message: `${file} convert to ${format.toUpperCase()} successfully!` });
-          resolve();
-        })
-        .on('error', (error) => {
-          reject(
-            new Error(`Failed to convert ${file} to ${format.toUpperCase()}: ${error.message}`)
-          );
-        })
-        .save(outputPath);
+    // 使用 setImmediate 來啟動非同步的轉檔操作
+    setImmediate(() => {
+      convertVideo(file, format);
     });
+
+    // 立即回傳response
+    res.status(200).json({ message: `Conversion for ${file} started.` });
   } catch (error) {
     return res.status(500).json({ error: error.message });
   }

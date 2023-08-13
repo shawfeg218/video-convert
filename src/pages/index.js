@@ -8,7 +8,7 @@ export default function Home() {
 
   const [formats, setFormats] = useState({});
   const [processing, setProcessing] = useState(false);
-  const controllerRef = useRef(null);
+  // const controllerRef = useRef(null);
   const [waiting, setWaiting] = useState([]);
 
   const [message, setMessage] = useState('');
@@ -30,6 +30,15 @@ export default function Home() {
     if (waiting.length === 0 || processing) return;
     handleVideoTransform();
   }, [waiting, processing]);
+
+  useEffect(() => {
+    if (processing === false) return;
+    const interval = setInterval(() => {
+      fetchStatus();
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, [processing]);
 
   const fetchFiles = async (folder) => {
     try {
@@ -58,14 +67,45 @@ export default function Home() {
     }
   };
 
-  const handleVideoTransform = async () => {
-    setProcessing(true);
+  const fetchStatus = async () => {
+    try {
+      const response = await fetch('/api/checkConvert', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
 
+      if (!response.ok) {
+        throw new Error('Failed to fetch conversion status');
+      }
+
+      const responseJson = await response.json();
+      const file = responseJson.file;
+      const status = responseJson.status;
+      console.log('file: ' + file + ', status: ' + status);
+
+      if (status === 'completed') {
+        setProcessing(false);
+        setMessage(`${file} 轉檔完成`);
+        fetchFiles('results');
+        setWaiting((prev) => prev.slice(1));
+      } else if (status === 'failed') {
+        setProcessing(false);
+        window.alert(`${file} 轉檔失敗`);
+        setWaiting((prev) => prev.slice(1));
+      }
+    } catch (error) {
+      console.log(error.message);
+    }
+  };
+
+  const handleVideoTransform = async () => {
     const file = waiting[0].file;
     const format = waiting[0].format;
 
-    const controller = new AbortController();
-    controllerRef.current = controller;
+    // const controller = new AbortController();
+    // controllerRef.current = controller;
 
     try {
       const response = await fetch('/api/convert', {
@@ -74,41 +114,38 @@ export default function Home() {
         headers: {
           'Content-Type': 'application/json',
         },
-        signal: controller.signal,
+        // signal: controller.signal,
       });
 
       if (!response.ok) {
         const errorResponse = await response.json();
+        console.log('errorResponse:', errorResponse);
         throw new Error(errorResponse.error);
       }
 
       const data = await response.json();
       console.log('data:', data.message);
       setMessage(data.message);
-
-      fetchFiles('results');
+      setProcessing(true);
     } catch (error) {
       if (error.name === 'AbortError') {
-        console.log('Aborted', error.message);
+        console.log('Aborted: ', error.message);
         setMessage('Aborted');
+        setProcessing(false);
       } else {
         console.log(error.message);
         window.alert(error.message);
+        setProcessing(false);
       }
-    } finally {
-      setWaiting((prev) => prev.slice(1));
-      setProcessing(false);
     }
   };
 
-  // abort the current request
-  const handleAbort = () => {
-    if (controllerRef.current) {
-      controllerRef.current.abort();
-    }
-    setWaiting((prev) => prev.slice(1));
-    setProcessing(false);
-  };
+  // // abort the current request
+  // const handleAbort = () => {
+  //   if (controllerRef.current) {
+  //     controllerRef.current.abort();
+  //   }
+  // };
 
   const handleCancelWaiting = (index) => {
     setWaiting((prev) => prev.filter((_, i) => i !== index));
@@ -183,9 +220,9 @@ export default function Home() {
                   <p>
                     {waiting[0].file} to {waiting[0].format.toUpperCase()} 轉檔中...
                   </p>
-                  <button onClick={handleAbort} className="ml-2 text-blue-600">
+                  {/* <button onClick={handleAbort} className="ml-2 text-blue-600">
                     點此取消
-                  </button>
+                  </button> */}
                 </div>
                 <p>{waiting.length - 1} 個影片等待中...</p>
                 {waiting.slice(1).map((item, index) => (
