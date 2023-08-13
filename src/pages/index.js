@@ -68,6 +68,7 @@ export default function Home() {
       }
     } catch (error) {
       console.log(error.message);
+      window.alert(error.message);
     }
   };
 
@@ -177,7 +178,7 @@ export default function Home() {
         <section className="min-h-full w-full max-w-xl bg-white px-2 pt-3 pb-1 rounded-md">
           <div className="flex justify-between items-center">
             <div className="flex items-center">
-              <h1>Uploads from</h1>
+              <h1>輸入路徑:</h1>
               <input
                 type="text"
                 placeholder={`Default:  Path/to/video-convert/${inputDir.path}`}
@@ -314,13 +315,17 @@ export default function Home() {
             </div>
           )}
           <div className="flex justify-between items-center">
-            <h1>Converted files</h1>
-            <input
-              type="text"
-              placeholder={`Default:  Path/to/video-convert/${outputDir.path}`}
-              className="border-2 rounded-md w-96 text-sm p-1 ml-2"
-              onChange={(e) => setOutputDir({ forInput: false, path: e.target.value || 'results' })}
-            />
+            <div className="flex items-center">
+              <h1>輸出路徑:</h1>
+              <input
+                type="text"
+                placeholder={`Default:  Path/to/video-convert/${outputDir.path}`}
+                className="border-2 rounded-md w-96 text-sm p-1 ml-2"
+                onChange={(e) =>
+                  setOutputDir({ forInput: false, path: e.target.value || 'results' })
+                }
+              />
+            </div>
             <button
               className="mr-2 h-8 w-8 flex justify-center items-center border-slate-400 border-2 rounded-sm"
               onClick={() => {
