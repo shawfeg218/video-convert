@@ -12,7 +12,11 @@ export const convertVideo = async (file, format, fps, size) => {
     const inputPath = path.join(process.cwd(), 'uploads', file);
     const parsedPath = path.parse(file);
     const outputFileName = parsedPath.name;
-    const outputPath = path.join(process.cwd(), 'results', `${outputFileName}.${format}`);
+    const outputPath = path.join(
+      process.cwd(),
+      'results',
+      `${outputFileName}_${size}p_${fps}fps.${format}`
+    );
     const outputFps = Number(fps) || 30;
     let outputSize = '?x1080';
     if (size === '720') {
