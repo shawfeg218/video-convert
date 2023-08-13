@@ -7,6 +7,8 @@ export default function Home() {
   const [convertedFiles, setConvertedFiles] = useState([]);
 
   const [formats, setFormats] = useState({});
+  const [fps, setFps] = useState({});
+  const [size, setSize] = useState({});
   const [processing, setProcessing] = useState(false);
   // const controllerRef = useRef(null);
   const [waiting, setWaiting] = useState([]);
@@ -103,6 +105,8 @@ export default function Home() {
   const handleVideoTransform = async () => {
     const file = waiting[0].file;
     const format = waiting[0].format;
+    const fps = waiting[0].fps;
+    const size = waiting[0].size;
 
     // const controller = new AbortController();
     // controllerRef.current = controller;
@@ -110,7 +114,7 @@ export default function Home() {
     try {
       const response = await fetch('/api/convert', {
         method: 'POST',
-        body: JSON.stringify({ file: file, format: format }),
+        body: JSON.stringify({ file: file, format: format, fps: fps, size: size }),
         headers: {
           'Content-Type': 'application/json',
         },
@@ -124,7 +128,7 @@ export default function Home() {
       }
 
       const data = await response.json();
-      console.log('data:', data.message);
+      console.log(data.message);
       setMessage(data.message);
       setProcessing(true);
     } catch (error) {
@@ -180,6 +184,34 @@ export default function Home() {
                   <select
                     className="ml-1"
                     onChange={(e) => {
+                      setSize((prev) => ({
+                        ...prev,
+                        [file]: e.target.value,
+                      }));
+                    }}
+                  >
+                    <option value="1080">1080p</option>
+                    <option value="720">720p</option>
+                    <option value="1440">1440p</option>
+                    <option value="2160">2160p</option>
+                  </select>
+                  <select
+                    className="ml-1"
+                    onChange={(e) => {
+                      setFps((prev) => ({
+                        ...prev,
+                        [file]: e.target.value,
+                      }));
+                    }}
+                  >
+                    <option value="30">30fps</option>
+                    <option value="24">24fps</option>
+                    <option value="60">60fps</option>
+                  </select>
+
+                  <select
+                    className="ml-1"
+                    onChange={(e) => {
                       setFormats((prev) => ({
                         ...prev,
                         [file]: e.target.value,
@@ -199,7 +231,12 @@ export default function Home() {
                     onClick={() => {
                       setWaiting((prev) => [
                         ...prev,
-                        { file: file, format: formats[file] || 'mp4' },
+                        {
+                          file: file,
+                          format: formats[file] || 'mp4',
+                          fps: fps[file] || 30,
+                          size: size[file] || 1080,
+                        },
                       ]);
                     }}
                     // disabled={loading}

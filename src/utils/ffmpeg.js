@@ -7,16 +7,31 @@ import fs from 'fs';
 
 global.conversionStatus = global.conversionStatus || { file: '', status: '' };
 
-export const convertVideo = async (file, format) => {
+export const convertVideo = async (file, format, fps, size) => {
   try {
     const inputPath = path.join(process.cwd(), 'uploads', file);
     const parsedPath = path.parse(file);
     const outputFileName = parsedPath.name;
     const outputPath = path.join(process.cwd(), 'results', `${outputFileName}.${format}`);
+    const outputFps = Number(fps) || 30;
+    let outputSize = '?x1080';
+    if (size === '720') {
+      outputSize = '?x720';
+    } else if (size === '1080') {
+      outputSize = '?x1080';
+    } else if (size === '1440') {
+      outputSize = '?x1440';
+    } else if (size === '2160') {
+      outputSize = '?x2160';
+    }
+
+    console.log('Fps: ', outputFps, ', Size: ', outputSize);
 
     await new Promise((resolve, reject) => {
       ffmpeg()
         .input(inputPath)
+        .fpsOutput(outputFps)
+        .size(outputSize)
         .outputFormat(format)
         .on('start', () => {
           console.log('ffmpeg start converting...');
