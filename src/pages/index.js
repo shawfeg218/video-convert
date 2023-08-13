@@ -1,4 +1,3 @@
-import { useRef } from 'react';
 import { useState, useEffect } from 'react';
 import { MdRefresh } from 'react-icons/md';
 
@@ -13,14 +12,9 @@ export default function Home() {
   const [fps, setFps] = useState({});
   const [size, setSize] = useState({});
   const [processing, setProcessing] = useState(false);
-  // const controllerRef = useRef(null);
   const [waiting, setWaiting] = useState([]);
 
   const [message, setMessage] = useState('');
-
-  useEffect(() => {
-    console.log('inputDir:', inputDir.path);
-  }, [inputDir]);
 
   useEffect(() => {
     if (message) {
@@ -96,14 +90,14 @@ export default function Home() {
       console.log('file: ' + file + ', status: ' + status);
 
       if (status === 'completed') {
+        setWaiting((prev) => prev.slice(1));
         setProcessing(false);
         setMessage(`${file} 轉檔完成`);
         fetchFiles(outputDir);
-        setWaiting((prev) => prev.slice(1));
       } else if (status === 'failed') {
+        setWaiting((prev) => prev.slice(1));
         setProcessing(false);
         window.alert(`${file} 轉檔失敗`);
-        setWaiting((prev) => prev.slice(1));
       }
     } catch (error) {
       console.log(error.message);
@@ -115,9 +109,6 @@ export default function Home() {
     const format = waiting[0].format;
     const fps = waiting[0].fps;
     const size = waiting[0].size;
-
-    // const controller = new AbortController();
-    // controllerRef.current = controller;
 
     try {
       const response = await fetch('/api/convert', {
@@ -133,7 +124,6 @@ export default function Home() {
         headers: {
           'Content-Type': 'application/json',
         },
-        // signal: controller.signal,
       });
 
       if (!response.ok) {
@@ -147,24 +137,35 @@ export default function Home() {
       setMessage(data.message);
       setProcessing(true);
     } catch (error) {
-      if (error.name === 'AbortError') {
-        console.log('Aborted: ', error.message);
-        setMessage('Aborted');
-        setProcessing(false);
-      } else {
-        console.log(error.message);
-        window.alert(error.message);
-        setProcessing(false);
-      }
+      console.log(error.message);
+      window.alert(error.message);
+      setProcessing(false);
     }
   };
 
-  // // abort the current request
-  // const handleAbort = () => {
-  //   if (controllerRef.current) {
-  //     controllerRef.current.abort();
-  //   }
-  // };
+  const handleAbort = async () => {
+    if (!processing) return;
+    try {
+      const response = await fetch('/api/abortConvert', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        const errorResponse = await response.json();
+        throw new Error(errorResponse.error);
+      }
+
+      const responseJson = await response.json();
+      console.log(responseJson.message);
+      setMessage(`${waiting[0].file} 轉檔 ${waiting[0].format} 已取消`);
+    } catch (error) {
+      console.log(error.message);
+      window.alert(error.message);
+    }
+  };
 
   const handleCancelWaiting = (index) => {
     setWaiting((prev) => prev.filter((_, i) => i !== index));
@@ -176,7 +177,7 @@ export default function Home() {
         <section className="min-h-full w-full max-w-xl bg-white px-2 pt-3 pb-1 rounded-md">
           <div className="flex justify-between items-center">
             <div className="flex items-center">
-              <h>Uploads from</h>
+              <h1>Uploads from</h1>
               <input
                 type="text"
                 placeholder={`Default:  Path/to/video-convert/${inputDir.path}`}
@@ -282,9 +283,9 @@ export default function Home() {
                   <p>
                     {waiting[0].file} to {waiting[0].format.toUpperCase()} 轉檔中...
                   </p>
-                  {/* <button onClick={handleAbort} className="ml-2 text-blue-600">
+                  <button onClick={handleAbort} className="ml-2 text-blue-600">
                     點此取消
-                  </button> */}
+                  </button>
                 </div>
                 <p>{waiting.length - 1} 個影片等待中...</p>
                 {waiting.slice(1).map((item, index) => (
@@ -304,7 +305,7 @@ export default function Home() {
             )}
           </div>
         </section>
-        <section className="min-h-full w-full max-w-xl bg-white px-2 py-3 rounded-md max-xl:mt-4 relative">
+        <section className="min-h-full w-full max-w-xl bg-white px-2 py-3 pb-1 rounded-md max-xl:mt-4 relative">
           {message && (
             <div className="flex justify-center absolute top-1/2 left-0 w-full">
               <div className="border-2 border-slate-300 p-2 rounded-md bg-white max-w-md">

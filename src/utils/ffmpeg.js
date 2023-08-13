@@ -7,6 +7,8 @@ import fs from 'fs';
 
 global.conversionStatus = global.conversionStatus || { file: '', status: '' };
 
+global.currentFfmpegCommand = global.currentFfmpegCommand || null;
+
 export const convertVideo = async (file, format, fps, size, inputDir, outputDir) => {
   try {
     // generate input path
@@ -49,7 +51,7 @@ export const convertVideo = async (file, format, fps, size, inputDir, outputDir)
 
     // convert video
     await new Promise((resolve, reject) => {
-      ffmpeg()
+      currentFfmpegCommand = ffmpeg()
         .input(filePath)
         .fpsOutput(outputFps)
         .size(outputSize)
