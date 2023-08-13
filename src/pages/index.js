@@ -122,7 +122,14 @@ export default function Home() {
     try {
       const response = await fetch('/api/convert', {
         method: 'POST',
-        body: JSON.stringify({ file: file, format: format, fps: fps, size: size }),
+        body: JSON.stringify({
+          file: file,
+          format: format,
+          fps: fps,
+          size: size,
+          inputDir: inputDir.path,
+          outputDir: outputDir.path,
+        }),
         headers: {
           'Content-Type': 'application/json',
         },

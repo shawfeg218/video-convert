@@ -7,7 +7,7 @@ export default async (req, res) => {
       throw new Error('Only POST requests allowed.');
     }
 
-    const { file, format, fps, size } = req.body;
+    const { file, format, fps, size, inputDir, outputDir } = req.body;
 
     // 檢查輸入
     if (!file || !format) {
@@ -16,7 +16,7 @@ export default async (req, res) => {
 
     // 使用 setImmediate 來啟動非同步的轉檔操作
     setImmediate(() => {
-      convertVideo(file, format, fps, size);
+      convertVideo(file, format, fps, size, inputDir, outputDir);
     });
 
     // 立即回傳response

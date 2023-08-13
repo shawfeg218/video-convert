@@ -7,16 +7,33 @@ import fs from 'fs';
 
 global.conversionStatus = global.conversionStatus || { file: '', status: '' };
 
-export const convertVideo = async (file, format, fps, size) => {
+export const convertVideo = async (file, format, fps, size, inputDir, outputDir) => {
   try {
-    const inputPath = path.join(process.cwd(), 'uploads', file);
+    // generate input path
+    let filePath;
+    if (inputDir === 'uploads') {
+      filePath = path.join(process.cwd(), 'uploads', file);
+    } else {
+      filePath = path.join(inputDir, file);
+    }
+    console.log('filePath: ', filePath);
+
+    // generate output path
+    let outputFilePath;
     const parsedPath = path.parse(file);
     const outputFileName = parsedPath.name;
-    const outputPath = path.join(
-      process.cwd(),
-      'results',
-      `${outputFileName}_${size}p_${fps}fps.${format}`
-    );
+    if (outputDir === 'results') {
+      outputFilePath = path.join(
+        process.cwd(),
+        'results',
+        `${outputFileName}_${size}p_${fps}fps.${format}`
+      );
+    } else {
+      outputFilePath = path.join(outputDir, `${outputFileName}_${size}p_${fps}fps.${format}`);
+    }
+    console.log('outputFilePath: ', outputFilePath);
+
+    // generate quality settings
     const outputFps = Number(fps) || 30;
     let outputSize = '?x1080';
     if (size === '720') {
@@ -28,12 +45,12 @@ export const convertVideo = async (file, format, fps, size) => {
     } else if (size === '2160') {
       outputSize = '?x2160';
     }
-
     console.log('Fps: ', outputFps, ', Size: ', outputSize);
 
+    // convert video
     await new Promise((resolve, reject) => {
       ffmpeg()
-        .input(inputPath)
+        .input(filePath)
         .fpsOutput(outputFps)
         .size(outputSize)
         .outputFormat(format)
@@ -47,16 +64,16 @@ export const convertVideo = async (file, format, fps, size) => {
           resolve();
         })
         .on('error', (error) => {
-          console.error('ffmpeg error:', error.message);
+          console.log('ffmpeg error:', error.message);
           conversionStatus = { file: file, status: 'failed' };
-          if (fs.existsSync(outputPath)) {
-            fs.unlinkSync(outputPath);
+          if (fs.existsSync(outputFilePath)) {
+            fs.unlinkSync(outputFilePath);
           }
           reject(
             new Error(`Failed to convert ${file} to ${format.toUpperCase()}: ${error.message}`)
           );
         })
-        .save(outputPath);
+        .save(outputFilePath);
     });
   } catch (error) {
     console.log(error.message);
