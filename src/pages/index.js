@@ -3,6 +3,9 @@ import { useState, useEffect } from 'react';
 import { MdRefresh } from 'react-icons/md';
 
 export default function Home() {
+  const [inputDir, setInputDir] = useState({ forInput: true, path: 'uploads' });
+  const [outputDir, setOutputDir] = useState({ forInput: false, path: 'results' });
+
   const [files, setFiles] = useState([]);
   const [convertedFiles, setConvertedFiles] = useState([]);
 
@@ -16,6 +19,10 @@ export default function Home() {
   const [message, setMessage] = useState('');
 
   useEffect(() => {
+    console.log('inputDir:', inputDir.path);
+  }, [inputDir]);
+
+  useEffect(() => {
     if (message) {
       setTimeout(() => {
         setMessage('');
@@ -24,8 +31,8 @@ export default function Home() {
   }, [message]);
 
   useEffect(() => {
-    fetchFiles('uploads');
-    fetchFiles('results');
+    fetchFiles(inputDir);
+    fetchFiles(outputDir);
   }, []);
 
   useEffect(() => {
@@ -42,8 +49,9 @@ export default function Home() {
     return () => clearInterval(interval);
   }, [processing]);
 
-  const fetchFiles = async (folder) => {
+  const fetchFiles = async (dir) => {
     try {
+      const folder = dir.path;
       const response = await fetch('/api/files', {
         method: 'POST',
         headers: {
@@ -59,9 +67,9 @@ export default function Home() {
       const data = await response.json();
       // console.log('data:', data);
 
-      if (folder === 'uploads') {
+      if (dir.forInput === true) {
         setFiles(data);
-      } else if (folder === 'results') {
+      } else if (dir.forInput === false) {
         setConvertedFiles(data);
       }
     } catch (error) {
@@ -90,7 +98,7 @@ export default function Home() {
       if (status === 'completed') {
         setProcessing(false);
         setMessage(`${file} 轉檔完成`);
-        fetchFiles('results');
+        fetchFiles(outputDir);
         setWaiting((prev) => prev.slice(1));
       } else if (status === 'failed') {
         setProcessing(false);
@@ -158,14 +166,22 @@ export default function Home() {
   return (
     <main className="flex min-h-screen flex-col items-center justify-between ">
       <div className="flex flex-wrap min-h-screen w-full justify-around px-8 py-10 ">
-        <section className="min-h-full w-full max-w-xl bg-white p-2 rounded-md">
+        <section className="min-h-full w-full max-w-xl bg-white px-2 py-3 rounded-md">
           <div className="flex justify-between items-center">
-            {files.length === 0 && <h1>No video to convert</h1>}
-            {files.length !== 0 && <h1>Select file to convert</h1>}
+            <div className="flex items-center">
+              {files.length === 0 && <h1>No video to convert</h1>}
+              {files.length !== 0 && <h1>Uploads from</h1>}
+              <input
+                type="text"
+                placeholder={`Default:  Path/to/video-convert/${inputDir.path}`}
+                className="border-2 rounded-md w-96 text-sm p-1 ml-2"
+                onChange={(e) => setInputDir({ forInput: true, path: e.target.value || 'uploads' })}
+              />
+            </div>
             <button
               className="mr-2 h-8 w-8 flex justify-center items-center border-slate-400 border-2 rounded-sm"
               onClick={() => {
-                fetchFiles('uploads');
+                fetchFiles(inputDir);
               }}
             >
               <MdRefresh className="text-slate-500" />
@@ -279,7 +295,7 @@ export default function Home() {
             )}
           </div>
         </section>
-        <section className="min-h-full w-full max-w-xl bg-white p-2 rounded-md max-xl:mt-4 relative">
+        <section className="min-h-full w-full max-w-xl bg-white px-2 py-3 rounded-md max-xl:mt-4 relative">
           {message && (
             <div className="flex justify-center absolute top-1/2 left-0 w-full">
               <div className="border-2 border-slate-300 p-2 rounded-md bg-white">
@@ -289,10 +305,16 @@ export default function Home() {
           )}
           <div className="flex justify-between items-center">
             <h1>Converted files</h1>
+            <input
+              type="text"
+              placeholder={`Default:  Path/to/video-convert/${outputDir.path}`}
+              className="border-2 rounded-md w-96 text-sm p-1 ml-2"
+              onChange={(e) => setOutputDir({ forInput: false, path: e.target.value || 'results' })}
+            />
             <button
               className="mr-2 h-8 w-8 flex justify-center items-center border-slate-400 border-2 rounded-sm"
               onClick={() => {
-                fetchFiles('results');
+                fetchFiles(outputDir);
               }}
             >
               <MdRefresh className="text-slate-500" />

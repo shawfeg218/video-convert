@@ -8,11 +8,18 @@ export default async (req, res) => {
     }
     const folder = req.body.folder;
 
-    const directoryPath = path.join(process.cwd(), folder);
+    let directoryPath;
+    if (folder === 'uploads' || folder === 'results') {
+      directoryPath = path.join(process.cwd(), folder);
+    } else {
+      directoryPath = path.join(folder);
+    }
+    // console.log('directoryPath: ', directoryPath);
 
     // check if directory exists
     if (!existsSync(directoryPath)) {
-      await fs.mkdir(directoryPath, { recursive: true });
+      // await fs.mkdir(directoryPath, { recursive: true });
+      throw new Error('Directory does not exist.');
     }
 
     const files = await fs.readdir(directoryPath);
