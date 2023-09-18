@@ -203,6 +203,7 @@ export default function Home() {
               <MdRefresh className="text-slate-500" />
             </button>
           </div>
+
           <ul className="max-h-96 overflow-y-auto mt-2 h-3/4">
             {files.length === 0 && <p className="text-center mt-12">No files in this folder.</p>}
             {files.map((file) => (

@@ -49,6 +49,35 @@ export const convertVideo = async (file, format, fps, size, inputDir, outputDir)
     }
     console.log('Fps: ', outputFps, ', Size: ', outputSize);
 
+    // generate output Codec
+    // for mp4, mov
+    let outputVideoCodec = 'libx264';
+    let outputAudioCodec = 'aac';
+    // for other formats
+    switch (format) {
+      case 'webm':
+        outputVideoCodec = 'libvpx-vp9';
+        outputAudioCodec = 'libopus';
+        break;
+      case 'ogg':
+        outputVideoCodec = 'libtheora';
+        outputAudioCodec = 'libvorbis';
+        break;
+      case 'avi':
+        outputVideoCodec = 'libxvid';
+        outputAudioCodec = 'libmp3lame';
+        break;
+      case 'flv':
+        outputVideoCodec = 'flv';
+        outputAudioCodec = 'libmp3lame';
+        break;
+      case 'mpeg':
+        outputVideoCodec = 'mpeg';
+        outputAudioCodec = 'libmp3lame';
+        break;
+    }
+    console.log('Video Codec: ', outputVideoCodec, ', Audio Codec: ', outputAudioCodec);
+
     // convert video
     await new Promise((resolve, reject) => {
       currentFfmpegCommand = ffmpeg()
@@ -56,6 +85,8 @@ export const convertVideo = async (file, format, fps, size, inputDir, outputDir)
         .fpsOutput(outputFps)
         .size(outputSize)
         .outputFormat(format)
+        .audioCodec(outputAudioCodec)
+        .videoCodec(outputVideoCodec)
         .on('start', () => {
           console.log('ffmpeg start converting...');
           conversionStatus = { file: file, status: 'processing' };
